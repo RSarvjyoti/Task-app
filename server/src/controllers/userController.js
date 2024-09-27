@@ -1,30 +1,51 @@
-const User = require("../models/userModel")
+const User = require("../models/userModel");
+const { generateToken } = require("../utils/genrateToken");
+const { hashPassword, comparePassword } = require("../utils/hashigData");
 
 let signup = async (req, res) => {
-   try{
-    const user = new User(req.body);
+  try {
+    const { username, email, password } = req.body;
+
+    const hashedPassword = await hashPassword(password);
+
+    const user = new User({
+      username,
+      email,
+      password: hashedPassword,
+    });
+
     await user.save();
-   }catch(err) {
+
+    res.json({ message: "Registered successfully!" });
+
+  } catch (err) {
     console.log(err);
-   }
-
-   res.send("Registered!");
-
-}
-
+    res.status(500).send("Error registering user");
+  }
+};
 
 let login = async (req, res) => {
-    const {email, password} = req.body; 
-    try{
-        const user = await User.find({email, password});
-        if(user.length > 0 ) {
-            res.send("Login Successful");
-        }else {
-            res.send("Login Failed")
-        }
-    }catch(err) {
+  const { email, password } = req.body;
+  try {
+    const user = await User.findOne({ email });
 
+    if (!user) {
+      return res.status(400).send("User not found");
     }
-}
 
-module.exports = {signup, login};
+    const isMatch = await comparePassword(password, user.password);
+
+    if (isMatch) {
+        const token = generateToken({ userId: user._id, email: user.email });
+        res.json({ message: "Login Successful", token });
+
+    } else {
+      res.status(400).send("Invalid email or password");
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Error logging in");
+  }
+};
+
+module.exports = { signup, login };
