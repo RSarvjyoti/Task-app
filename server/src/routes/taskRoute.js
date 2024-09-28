@@ -4,9 +4,9 @@ const authenticateToken = require("../middlewere/authMiddleware");
 
 const taskRoute = Router();
 
-taskRoute.post('/create-task', authenticateToken, createTask);
-taskRoute.get('/get-all-task', authenticateToken, getAllTask);
-taskRoute.patch('/update-task', authenticateToken, updateTask);
-taskRoute.delete('/delete-task', authenticateToken, deleteTask);
+taskRoute.post('/', authenticateToken, createTask);
+taskRoute.get('/', authenticateToken, getAllTask);
+taskRoute.patch('/:id', authenticateToken, updateTask);
+taskRoute.delete('/:id', authenticateToken, deleteTask);
 
 module.exports = taskRoute;
